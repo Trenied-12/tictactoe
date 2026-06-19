@@ -4,6 +4,7 @@ import {
     getDatabase,
     ref,
     set,
+    get,
     onValue
 } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-database.js";
 
@@ -28,33 +29,106 @@ const db = getDatabase(app);
 
 
 // ==========================
-// SPIELER
+// SPIELER ID
 // ==========================
 
-const params = new URLSearchParams(window.location.search);
+let playerId = localStorage.getItem("playerId");
 
-const mySymbol = params.get("player");
+if (!playerId) {
 
-const playerInfo = document.getElementById("playerInfo");
+    playerId =
+        crypto.randomUUID();
 
-playerInfo.textContent =
-    mySymbol
-        ? `Du spielst als ${mySymbol}`
-        : "Kein Spieler ausgewählt!";
+    localStorage.setItem(
+        "playerId",
+        playerId
+    );
+}
+
+let mySymbol = null;
+
+
+// ==========================
+// SPIELER REGISTRIEREN
+// ==========================
+
+async function registerPlayer() {
+
+    const snapshot =
+        await get(ref(db, "players"));
+
+    const players =
+        snapshot.val() || {};
+
+    if (players.X === playerId) {
+
+        mySymbol = "X";
+
+    } else if (players.O === playerId) {
+
+        mySymbol = "O";
+
+    } else if (!players.X) {
+
+        await set(
+            ref(db, "players/X"),
+            playerId
+        );
+
+        mySymbol = "X";
+
+    } else if (!players.O) {
+
+        await set(
+            ref(db, "players/O"),
+            playerId
+        );
+
+        mySymbol = "O";
+
+    } else {
+
+        mySymbol = "Zuschauer";
+
+    }
+
+    playerInfo.textContent =
+        `Du bist: ${mySymbol}`;
+}
+
+
+// ==========================
+// DOM
+// ==========================
+
+const cells =
+    document.querySelectorAll(".cell");
+
+const statusText =
+    document.getElementById("status");
+
+const resetBtn =
+    document.getElementById("reset");
+
+const playerInfo =
+    document.getElementById("playerInfo");
 
 
 // ==========================
 // SPIEL
 // ==========================
 
-const cells = document.querySelectorAll(".cell");
-const statusText = document.getElementById("status");
-const resetBtn = document.getElementById("reset");
+let board =
+[
+    "","","",
+    "","","",
+    "","",""
+];
 
-let board = ["","","","","","","","",""];
 let currentPlayer = "X";
 
-const winPatterns = [
+const winPatterns =
+[
     [0,1,2],
     [3,4,5],
     [6,7,8],
@@ -67,15 +141,15 @@ const winPatterns = [
 
 
 // ==========================
-// FIREBASE SPEICHERN
+// SPEICHERN
 // ==========================
 
 function saveGame() {
 
     set(ref(db, "game"), {
 
-        board: board,
-        currentPlayer: currentPlayer
+        board,
+        currentPlayer
 
     });
 
@@ -83,37 +157,38 @@ function saveGame() {
 
 
 // ==========================
-// GEWINNER PRÜFEN
+// GEWINNER
 // ==========================
 
 function checkWinner() {
 
-    return winPatterns.some(pattern => {
+    return winPatterns.some(pattern =>
 
-        return pattern.every(index =>
+        pattern.every(index =>
 
             board[index] === currentPlayer
 
-        );
+        )
 
-    });
+    );
 
 }
 
 
 // ==========================
-// BOARD AKTUALISIEREN
+// UI
 // ==========================
 
 function updateBoard() {
 
-    cells.forEach((cell, index) => {
+    cells.forEach((cell,index) => {
 
-        cell.textContent = board[index];
+        cell.textContent =
+            board[index];
 
     });
 
-    if(checkWinner()) {
+    if (checkWinner()) {
 
         statusText.textContent =
             `Spieler ${currentPlayer} gewinnt!`;
@@ -130,23 +205,26 @@ function updateBoard() {
 
 
 // ==========================
-// FIREBASE EMPFANGEN
+// LIVE DATEN
 // ==========================
 
-onValue(ref(db, "game"), (snapshot) => {
+onValue(ref(db, "game"), snapshot => {
 
-    const data = snapshot.val();
+    const data =
+        snapshot.val();
 
-    if(!data) {
+    if (!data) {
 
         saveGame();
 
         return;
-
     }
 
-    board = data.board;
-    currentPlayer = data.currentPlayer;
+    board =
+        data.board;
+
+    currentPlayer =
+        data.currentPlayer;
 
     updateBoard();
 
@@ -154,49 +232,65 @@ onValue(ref(db, "game"), (snapshot) => {
 
 
 // ==========================
-// KLICK EVENTS
+// KLICK
 // ==========================
 
 cells.forEach(cell => {
 
-    cell.addEventListener("click", handleClick);
+    cell.addEventListener(
+        "click",
+        handleClick
+    );
 
 });
 
 function handleClick() {
 
-    if(mySymbol !== currentPlayer) {
+    if (
+        mySymbol === "Zuschauer"
+    ) {
 
-        alert("Du bist nicht dran!");
-
-        return;
-
-    }
-
-    const index = this.dataset.index;
-
-    if(board[index] !== "") {
+        alert(
+            "Du bist Zuschauer."
+        );
 
         return;
-
     }
 
-    board[index] = currentPlayer;
+    if (
+        mySymbol !== currentPlayer
+    ) {
 
-    if(checkWinner()) {
+        alert(
+            "Du bist nicht dran!"
+        );
 
-        updateBoard();
+        return;
+    }
+
+    const index =
+        this.dataset.index;
+
+    if (
+        board[index] !== ""
+    ) {
+        return;
+    }
+
+    board[index] =
+        currentPlayer;
+
+    if (checkWinner()) {
 
         saveGame();
 
         return;
-
     }
 
     currentPlayer =
         currentPlayer === "X"
-            ? "O"
-            : "X";
+        ? "O"
+        : "X";
 
     saveGame();
 
@@ -207,12 +301,28 @@ function handleClick() {
 // RESET
 // ==========================
 
-resetBtn.addEventListener("click", () => {
+resetBtn.addEventListener(
+    "click",
+    () => {
 
-    board = ["","","","","","","","",""];
+        board =
+        [
+            "","","",
+            "","","",
+            "","",""
+        ];
 
-    currentPlayer = "X";
+        currentPlayer =
+            "X";
 
-    saveGame();
+        saveGame();
 
-});
+    }
+);
+
+
+// ==========================
+// START
+// ==========================
+
+registerPlayer();
