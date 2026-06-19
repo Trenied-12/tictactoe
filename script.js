@@ -28,6 +28,22 @@ const db = getDatabase(app);
 
 
 // ==========================
+// SPIELER
+// ==========================
+
+const params = new URLSearchParams(window.location.search);
+
+const mySymbol = params.get("player");
+
+const playerInfo = document.getElementById("playerInfo");
+
+playerInfo.textContent =
+    mySymbol
+        ? `Du spielst als ${mySymbol}`
+        : "Kein Spieler ausgewählt!";
+
+
+// ==========================
 // SPIEL
 // ==========================
 
@@ -55,89 +71,14 @@ const winPatterns = [
 // ==========================
 
 function saveGame() {
+
     set(ref(db, "game"), {
+
         board: board,
         currentPlayer: currentPlayer
-    });
-}
 
-
-// ==========================
-// BOARD AKTUALISIEREN
-// ==========================
-
-function updateBoard() {
-
-    cells.forEach((cell, index) => {
-        cell.textContent = board[index];
     });
 
-    if(checkWinner()) {
-        statusText.textContent =
-            `Spieler ${currentPlayer} gewinnt!`;
-    } else {
-        statusText.textContent =
-            `Spieler ${currentPlayer} ist dran`;
-    }
-}
-
-
-// ==========================
-// LIVE DATEN EMPFANGEN
-// ==========================
-
-onValue(ref(db, "game"), (snapshot) => {
-
-    const data = snapshot.val();
-
-    if(!data) {
-        saveGame();
-        return;
-    }
-
-    board = data.board;
-    currentPlayer = data.currentPlayer;
-
-    updateBoard();
-});
-
-
-// ==========================
-// KLICK EVENTS
-// ==========================
-
-cells.forEach(cell => {
-    cell.addEventListener("click", handleClick);
-});
-
-function handleClick() {
-
-    const index = this.dataset.index;
-
-    if(board[index] !== "") {
-        return;
-    }
-
-    board[index] = currentPlayer;
-
-    if(checkWinner()) {
-
-        updateBoard();
-
-        saveGame();
-
-        statusText.textContent =
-            `Spieler ${currentPlayer} gewinnt!`;
-
-        return;
-    }
-
-    currentPlayer =
-        currentPlayer === "X"
-            ? "O"
-            : "X";
-
-    saveGame();
 }
 
 
@@ -161,6 +102,108 @@ function checkWinner() {
 
 
 // ==========================
+// BOARD AKTUALISIEREN
+// ==========================
+
+function updateBoard() {
+
+    cells.forEach((cell, index) => {
+
+        cell.textContent = board[index];
+
+    });
+
+    if(checkWinner()) {
+
+        statusText.textContent =
+            `Spieler ${currentPlayer} gewinnt!`;
+
+    }
+    else {
+
+        statusText.textContent =
+            `Spieler ${currentPlayer} ist dran`;
+
+    }
+
+}
+
+
+// ==========================
+// FIREBASE EMPFANGEN
+// ==========================
+
+onValue(ref(db, "game"), (snapshot) => {
+
+    const data = snapshot.val();
+
+    if(!data) {
+
+        saveGame();
+
+        return;
+
+    }
+
+    board = data.board;
+    currentPlayer = data.currentPlayer;
+
+    updateBoard();
+
+});
+
+
+// ==========================
+// KLICK EVENTS
+// ==========================
+
+cells.forEach(cell => {
+
+    cell.addEventListener("click", handleClick);
+
+});
+
+function handleClick() {
+
+    if(mySymbol !== currentPlayer) {
+
+        alert("Du bist nicht dran!");
+
+        return;
+
+    }
+
+    const index = this.dataset.index;
+
+    if(board[index] !== "") {
+
+        return;
+
+    }
+
+    board[index] = currentPlayer;
+
+    if(checkWinner()) {
+
+        updateBoard();
+
+        saveGame();
+
+        return;
+
+    }
+
+    currentPlayer =
+        currentPlayer === "X"
+            ? "O"
+            : "X";
+
+    saveGame();
+
+}
+
+
+// ==========================
 // RESET
 // ==========================
 
@@ -171,4 +214,5 @@ resetBtn.addEventListener("click", () => {
     currentPlayer = "X";
 
     saveGame();
+
 });

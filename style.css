@@ -8,6 +8,7 @@ body {
     grid-template-columns: repeat(3,100px);
     gap: 5px;
     justify-content: center;
+    margin: 20px auto;
 }
 
 .cell {
@@ -19,4 +20,8 @@ body {
     justify-content: center;
     align-items: center;
     cursor: pointer;
+}
+
+#playerInfo {
+    font-weight: bold;
 }
