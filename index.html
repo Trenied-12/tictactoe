@@ -11,6 +11,7 @@
 <h1>Tic Tac Toe GROOOOOß!</h1>
 
 <p id="playerInfo"></p>
+<p id="connectionInfo">Verbunden: 0</p>
 
 <div id="board">
     <div class="cell" data-index="0"></div>
@@ -24,9 +25,25 @@
     <div class="cell" data-index="8"></div>
 </div>
 
-<p id="status">Lade Spiel...</p>
+<p id="status">Lade...</p>
 
-<button id="reset">Neues Spiel</button>
+<div id="endgameScreen" class="overlay hidden">
+    <div class="endgame-card">
+        <h2 id="endgameTitle">Spiel beendet</h2>
+        <p id="endgameResult"></p>
+
+        <div class="ready-list">
+            <p id="readyXText">Spieler X: nicht bereit</p>
+            <p id="readyOText">Spieler O: nicht bereit</p>
+        </div>
+
+        <p id="readySummaryText">Warte auf Bereitschaft...</p>
+
+        <button id="readyBtn">Bereit für neues Spiel</button>
+
+        <p id="endgameNote"></p>
+    </div>
+</div>
 
 <script type="module" src="script.js"></script>
 

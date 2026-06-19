@@ -1,11 +1,13 @@
 body {
     text-align: center;
     font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 20px;
 }
 
 #board {
     display: grid;
-    grid-template-columns: repeat(3,100px);
+    grid-template-columns: repeat(3, 100px);
     gap: 5px;
     justify-content: center;
     margin: 20px auto;
@@ -20,8 +22,67 @@ body {
     justify-content: center;
     align-items: center;
     cursor: pointer;
+    user-select: none;
 }
 
 #playerInfo {
     font-weight: bold;
+}
+
+#status {
+    min-height: 1.5em;
+}
+
+.overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.55);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+    padding: 20px;
+}
+
+.hidden {
+    display: none;
+}
+
+.endgame-card {
+    background: white;
+    border-radius: 16px;
+    padding: 24px;
+    width: min(92vw, 360px);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+}
+
+.endgame-card h2 {
+    margin-top: 0;
+    margin-bottom: 12px;
+}
+
+.ready-list {
+    margin: 16px 0;
+    text-align: left;
+}
+
+#readySummaryText {
+    font-weight: bold;
+    margin: 12px 0 16px;
+}
+
+#readyBtn {
+    width: 100%;
+    padding: 12px 16px;
+    border: none;
+    border-radius: 10px;
+    font-size: 16px;
+    cursor: pointer;
+}
+
+#endgameNote {
+    margin-top: 14px;
+    font-size: 0.95rem;
+    color: #333;
+    min-height: 1.2em;
 }
