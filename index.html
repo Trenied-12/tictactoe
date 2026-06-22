@@ -3,32 +3,129 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ultimate Tic Tac Toe</title>
+    <title>Dino vs. Duck &middot; Ultimate Tic Tac Toe</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
+    <script>
+        // Theme sofort setzen (verhindert Aufblitzen des hellen Designs).
+        (function () {
+            try {
+                if (localStorage.getItem("theme") === "dark") {
+                    document.documentElement.setAttribute("data-theme", "dark");
+                }
+            } catch (error) {
+                // localStorage nicht verfuegbar - ignorieren.
+            }
+        })();
+    </script>
 </head>
 <body>
 
-<main class="game-shell">
-    <h1>Ultimate Tic Tac Toe</h1>
+<button id="themeToggle" class="theme-toggle" type="button" aria-label="Hell/Dunkel umschalten">🌙</button>
 
-    <section class="game-info" aria-live="polite">
-        <p id="playerInfo">Spielerzuweisung laeuft...</p>
-        <p id="connectionInfo">Verbunden: 0</p>
-        <p id="status">Lade...</p>
-        <p id="activeBoardInfo">Freie Brettwahl.</p>
+<div class="bg-decor" aria-hidden="true">
+    <span class="blob blob-1"></span>
+    <span class="blob blob-2"></span>
+    <span class="blob blob-3"></span>
+</div>
+
+<main class="game-shell">
+    <header class="app-header">
+        <h1><span class="title-emoji">🦕</span> Ultimate Tic Tac Toe <span class="title-emoji">🦆</span></h1>
+        <p class="subtitle">lara gegen JONAAAASSS &middot; Pinky, ich schummel nicht</p>
+        <div class="connection-pill" id="connectionPill">
+            <span class="dot"></span>
+            <span id="connectionInfo">Verbunden: 0</span>
+        </div>
+    </header>
+
+    <section class="scoreboard" aria-label="Punktestand">
+        <article class="player-card player-x" id="cardX">
+            <div class="player-avatar">
+                <img class="avatar-img dino" alt="Dino">
+            </div>
+            <div class="player-meta">
+                <p class="player-symbol">Dino (X)</p>
+                <p class="player-name" id="nameX">frei</p>
+            </div>
+            <div class="player-score">
+                <span class="score-value" id="scoreX">0</span>
+                <span class="score-label">Siege</span>
+            </div>
+            <span class="you-badge" id="youBadgeX">Du</span>
+            <span class="turn-flag" id="turnFlagX">am Zug</span>
+        </article>
+
+        <div class="score-center">
+            <div class="vs-circle">VS</div>
+            <div class="draws-pill">
+                <span class="draws-value" id="scoreDraws">0</span>
+                <span class="draws-label">Unentschieden</span>
+            </div>
+        </div>
+
+        <article class="player-card player-o" id="cardO">
+            <div class="player-avatar">
+                <img class="avatar-img duck" alt="Ente">
+            </div>
+            <div class="player-meta">
+                <p class="player-symbol">Ente (O)</p>
+                <p class="player-name" id="nameO">frei</p>
+            </div>
+            <div class="player-score">
+                <span class="score-value" id="scoreO">0</span>
+                <span class="score-label">Siege</span>
+            </div>
+            <span class="you-badge" id="youBadgeO">Du</span>
+            <span class="turn-flag" id="turnFlagO">am Zug</span>
+        </article>
     </section>
 
-    <div id="board" aria-label="Ultimate Tic Tac Toe Spielfeld"></div>
+    <section class="status-bar" aria-live="polite">
+        <p id="status">Lade...</p>
+        <p id="activeBoardInfo" class="active-hint">Freie Brettwahl.</p>
+    </section>
+
+    <div id="board" class="board" aria-label="Ultimate Tic Tac Toe Spielfeld"></div>
+
+    <p class="player-info-line" id="playerInfo">Spielerzuweisung laeuft...</p>
+
+    <button id="surrenderBtn" class="surrender-btn hidden" type="button">Aufgeben ? Hab ich mir gedacht ❤️</button>
 </main>
 
+<!-- Namens-Abfrage -->
+<div id="nameScreen" class="overlay hidden">
+    <div class="modal-card name-card">
+        <h2>HALLLOOO!</h2>
+        <p class="modal-sub">Wie sollen dich die anderen Spieler nennen?</p>
+        <form id="nameForm" autocomplete="off">
+            <input id="nameInput" type="text" maxlength="40" placeholder="Dein Spielername" required>
+            <p class="input-error hidden" id="nameError">Bitte gib einen Namen ein.</p>
+            <button type="submit" id="nameSubmit">Los geht's!</button>
+        </form>
+    </div>
+</div>
+
+<!-- Endbildschirm -->
 <div id="endgameScreen" class="overlay hidden">
-    <div class="endgame-card">
+    <div class="modal-card endgame-card">
+        <div class="endgame-trophy" id="endgameTrophy">🏆</div>
         <h2 id="endgameTitle">Spiel beendet</h2>
         <p id="endgameResult"></p>
 
         <div class="ready-list">
-            <p id="readyXText">Spieler X: nicht bereit</p>
-            <p id="readyOText">Spieler O: nicht bereit</p>
+            <div class="ready-row">
+                <img class="ready-avatar dino" alt="Dino">
+                <span id="readyXText">Dino: nicht bereit</span>
+                <span class="ready-check" id="readyCheckX">⏳</span>
+            </div>
+            <div class="ready-row">
+                <img class="ready-avatar duck" alt="Ente">
+                <span id="readyOText">Ente: nicht bereit</span>
+                <span class="ready-check" id="readyCheckO">⏳</span>
+            </div>
         </div>
 
         <p id="readySummaryText">Warte auf Bereitschaft...</p>

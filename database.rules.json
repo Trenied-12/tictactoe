@@ -4,12 +4,12 @@
     ".write": false,
     "game": {
       ".write": "newData.exists()",
-      ".validate": "newData.hasChildren(['gameType', 'schemaVersion', 'gameId', 'boards', 'boardWinners', 'activeBoard', 'currentPlayer', 'status', 'winner', 'moveNumber'])",
+      ".validate": "newData.hasChildren(['gameType', 'schemaVersion', 'gameId', 'boards', 'boardWinners', 'activeBoard', 'currentPlayer', 'status', 'winner', 'moveNumber', 'starter'])",
       "gameType": {
         ".validate": "newData.val() === 'ultimate-tic-tac-toe'"
       },
       "schemaVersion": {
-        ".validate": "newData.val() === 2"
+        ".validate": "newData.val() === 3"
       },
       "gameId": {
         ".validate": "newData.isString() && newData.val().length > 0 && newData.val().length <= 80"
@@ -35,6 +35,9 @@
       "currentPlayer": {
         ".validate": "newData.val() === 'X' || newData.val() === 'O'"
       },
+      "starter": {
+        ".validate": "newData.val() === 'X' || newData.val() === 'O'"
+      },
       "status": {
         ".validate": "newData.val() === 'playing' || newData.val() === 'ended'"
       },
@@ -43,6 +46,9 @@
       },
       "moveNumber": {
         ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 81"
+      },
+      "forfeitedBy": {
+        ".validate": "newData.val() === '' || newData.val() === 'X' || newData.val() === 'O'"
       },
       "$other": {
         ".validate": false
@@ -68,24 +74,43 @@
         ".validate": "newData.val() === true"
       }
     },
-    "rematch": {
+    "stats": {
       ".read": true,
-      ".write": "newData.exists()",
-      ".validate": "newData.hasChildren(['gameId', 'readyX', 'readyO', 'claimedBy'])",
-      "gameId": {
-        ".validate": "newData.isString() && newData.val().length > 0 && newData.val().length <= 80"
+      ".write": true,
+      ".validate": "newData.hasChildren(['x', 'o', 'draws', 'lastCountedGameId'])",
+      "x": {
+        ".validate": "newData.isNumber() && newData.val() >= 0"
       },
-      "readyX": {
-        ".validate": "newData.isBoolean()"
+      "o": {
+        ".validate": "newData.isNumber() && newData.val() >= 0"
       },
-      "readyO": {
-        ".validate": "newData.isBoolean()"
+      "draws": {
+        ".validate": "newData.isNumber() && newData.val() >= 0"
       },
-      "claimedBy": {
+      "lastCountedGameId": {
         ".validate": "newData.isString() && newData.val().length <= 80"
       },
       "$other": {
         ".validate": false
+      }
+    },
+    "devices": {
+      ".read": true,
+      "$deviceId": {
+        ".write": true,
+        ".validate": "newData.hasChildren(['name'])",
+        "name": {
+          ".validate": "newData.isString() && newData.val().length > 0 && newData.val().length <= 40"
+        },
+        "joinedAt": {
+          ".validate": "newData.isNumber()"
+        },
+        "lastSeen": {
+          ".validate": "newData.isNumber()"
+        },
+        "$other": {
+          ".validate": false
+        }
       }
     }
   }
