@@ -3,29 +3,23 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tic Tac Toe</title>
+    <title>Ultimate Tic Tac Toe</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-<h1>Tic Tac Toe laRAWR 🦖!</h1>
+<main class="game-shell">
+    <h1>Ultimate Tic Tac Toe</h1>
 
-<p id="playerInfo"></p>
-<p id="connectionInfo">Verbunden: 0</p>
+    <section class="game-info" aria-live="polite">
+        <p id="playerInfo">Spielerzuweisung laeuft...</p>
+        <p id="connectionInfo">Verbunden: 0</p>
+        <p id="status">Lade...</p>
+        <p id="activeBoardInfo">Freie Brettwahl.</p>
+    </section>
 
-<div id="board">
-    <div class="cell" data-index="0"></div>
-    <div class="cell" data-index="1"></div>
-    <div class="cell" data-index="2"></div>
-    <div class="cell" data-index="3"></div>
-    <div class="cell" data-index="4"></div>
-    <div class="cell" data-index="5"></div>
-    <div class="cell" data-index="6"></div>
-    <div class="cell" data-index="7"></div>
-    <div class="cell" data-index="8"></div>
-</div>
-
-<p id="status">Lade...</p>
+    <div id="board" aria-label="Ultimate Tic Tac Toe Spielfeld"></div>
+</main>
 
 <div id="endgameScreen" class="overlay hidden">
     <div class="endgame-card">
@@ -39,7 +33,7 @@
 
         <p id="readySummaryText">Warte auf Bereitschaft...</p>
 
-        <button id="readyBtn">Bereit für neues Spiel</button>
+        <button id="readyBtn" type="button">Bereit fuer neues Spiel</button>
 
         <p id="endgameNote"></p>
     </div>

@@ -1,0 +1,92 @@
+{
+  "rules": {
+    ".read": true,
+    ".write": false,
+    "game": {
+      ".write": "newData.exists()",
+      ".validate": "newData.hasChildren(['gameType', 'schemaVersion', 'gameId', 'boards', 'boardWinners', 'activeBoard', 'currentPlayer', 'status', 'winner', 'moveNumber'])",
+      "gameType": {
+        ".validate": "newData.val() === 'ultimate-tic-tac-toe'"
+      },
+      "schemaVersion": {
+        ".validate": "newData.val() === 2"
+      },
+      "gameId": {
+        ".validate": "newData.isString() && newData.val().length > 0 && newData.val().length <= 80"
+      },
+      "boards": {
+        ".validate": "newData.hasChildren(['0', '1', '2', '3', '4', '5', '6', '7', '8'])",
+        "$boardIndex": {
+          ".validate": "$boardIndex.matches(/^[0-8]$/) && newData.hasChildren(['0', '1', '2', '3', '4', '5', '6', '7', '8'])",
+          "$cellIndex": {
+            ".validate": "$cellIndex.matches(/^[0-8]$/) && (newData.val() === '' || newData.val() === 'X' || newData.val() === 'O')"
+          }
+        }
+      },
+      "boardWinners": {
+        ".validate": "newData.hasChildren(['0', '1', '2', '3', '4', '5', '6', '7', '8'])",
+        "$boardIndex": {
+          ".validate": "$boardIndex.matches(/^[0-8]$/) && (newData.val() === '' || newData.val() === 'X' || newData.val() === 'O' || newData.val() === 'draw')"
+        }
+      },
+      "activeBoard": {
+        ".validate": "newData.val() === -1 || newData.val() === 0 || newData.val() === 1 || newData.val() === 2 || newData.val() === 3 || newData.val() === 4 || newData.val() === 5 || newData.val() === 6 || newData.val() === 7 || newData.val() === 8"
+      },
+      "currentPlayer": {
+        ".validate": "newData.val() === 'X' || newData.val() === 'O'"
+      },
+      "status": {
+        ".validate": "newData.val() === 'playing' || newData.val() === 'ended'"
+      },
+      "winner": {
+        ".validate": "newData.val() === '' || newData.val() === 'X' || newData.val() === 'O' || newData.val() === 'draw'"
+      },
+      "moveNumber": {
+        ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 81"
+      },
+      "$other": {
+        ".validate": false
+      }
+    },
+    "players": {
+      ".read": true,
+      ".write": "newData.exists()",
+      "X": {
+        ".validate": "newData.isString() && newData.val().length > 0 && newData.val().length <= 80"
+      },
+      "O": {
+        ".validate": "newData.isString() && newData.val().length > 0 && newData.val().length <= 80"
+      },
+      "$other": {
+        ".validate": false
+      }
+    },
+    "connections": {
+      ".read": true,
+      "$playerId": {
+        ".write": "newData.val() === true || !newData.exists()",
+        ".validate": "newData.val() === true"
+      }
+    },
+    "rematch": {
+      ".read": true,
+      ".write": "newData.exists()",
+      ".validate": "newData.hasChildren(['gameId', 'readyX', 'readyO', 'claimedBy'])",
+      "gameId": {
+        ".validate": "newData.isString() && newData.val().length > 0 && newData.val().length <= 80"
+      },
+      "readyX": {
+        ".validate": "newData.isBoolean()"
+      },
+      "readyO": {
+        ".validate": "newData.isBoolean()"
+      },
+      "claimedBy": {
+        ".validate": "newData.isString() && newData.val().length <= 80"
+      },
+      "$other": {
+        ".validate": false
+      }
+    }
+  }
+}
