@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dino vs. Duck &middot; Ultimate Tic Tac Toe</title>
+    <title>Dino vs. Küken &middot; Ultimate Tic Tac Toe</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
@@ -36,8 +36,8 @@
 
 <main class="game-shell">
     <header class="app-header">
-        <h1><span class="title-emoji">🦕</span> Ultimate Tic Tac Toe <span class="title-emoji">🦆</span></h1>
-        <p class="subtitle">lara gegen JONAAAASSS &middot; Pinky, ich schummel nicht</p>
+        <h1><span class="title-emoji">🦖</span> Ultimate Tic Tac Toe <span class="title-emoji">🐣</span></h1>
+        <p class="subtitle">DINO gegen KÜKEN &middot; Pinky, ich schummel nicht🎀</p>
         <div class="connection-pill" id="connectionPill">
             <span class="dot"></span>
             <span id="connectionInfo">Verbunden: 0</span>
@@ -53,7 +53,7 @@
                 <p class="player-symbol">Dino (X)</p>
                 <p class="player-name" id="nameX">frei</p>
                 <div class="player-stats">
-                    <span title="Siege">✅ <b id="winsX">0</b></span>
+                    <span title="Siege">🏆 <b id="winsX">0</b></span>
                     <span title="Niederlagen">❌ <b id="lossesX">0</b></span>
                     <span title="Unentschieden">🤝 <b id="drawsX">0</b></span>
                 </div>
@@ -71,10 +71,10 @@
                 <img class="avatar-img duck" alt="Ente">
             </div>
             <div class="player-meta">
-                <p class="player-symbol">Ente (O)</p>
+                <p class="player-symbol">Küken (O)</p>
                 <p class="player-name" id="nameO">frei</p>
                 <div class="player-stats">
-                    <span title="Siege">✅ <b id="winsO">0</b></span>
+                    <span title="Siege">🏆 <b id="winsO">0</b></span>
                     <span title="Niederlagen">❌ <b id="lossesO">0</b></span>
                     <span title="Unentschieden">🤝 <b id="drawsO">0</b></span>
                 </div>
@@ -91,7 +91,7 @@
 
     <div id="board" class="board" aria-label="Ultimate Tic Tac Toe Spielfeld"></div>
 
-    <p class="player-info-line" id="playerInfo">Spielerzuweisung laeuft...</p>
+    <p class="player-info-line" id="playerInfo">Spielerzuweisung läuft...</p>
 
     <button id="surrenderBtn" class="surrender-btn hidden" type="button">Aufgeben ? Hab ich mir gedacht ❤️</button>
 </main>
@@ -124,14 +124,14 @@
             </div>
             <div class="ready-row">
                 <img class="ready-avatar duck" alt="Ente">
-                <span id="readyOText">Ente: nicht bereit</span>
+                <span id="readyOText">Küken: nicht bereit</span>
                 <span class="ready-check" id="readyCheckO">⏳</span>
             </div>
         </div>
 
         <p id="readySummaryText">Warte auf Bereitschaft...</p>
 
-        <button id="readyBtn" type="button">Bereit fuer neues Spiel</button>
+        <button id="readyBtn" type="button">Bereit für neues Spiel</button>
 
         <p id="endgameNote"></p>
     </div>
