@@ -74,20 +74,20 @@
         ".validate": "newData.val() === true"
       }
     },
-    "stats": {
+    "rematch": {
       ".read": true,
-      ".write": true,
-      ".validate": "newData.hasChildren(['x', 'o', 'draws', 'lastCountedGameId'])",
-      "x": {
-        ".validate": "newData.isNumber() && newData.val() >= 0"
+      ".write": "newData.exists()",
+      ".validate": "newData.hasChildren(['gameId', 'readyX', 'readyO', 'claimedBy'])",
+      "gameId": {
+        ".validate": "newData.isString() && newData.val().length > 0 && newData.val().length <= 80"
       },
-      "o": {
-        ".validate": "newData.isNumber() && newData.val() >= 0"
+      "readyX": {
+        ".validate": "newData.isBoolean()"
       },
-      "draws": {
-        ".validate": "newData.isNumber() && newData.val() >= 0"
+      "readyO": {
+        ".validate": "newData.isBoolean()"
       },
-      "lastCountedGameId": {
+      "claimedBy": {
         ".validate": "newData.isString() && newData.val().length <= 80"
       },
       "$other": {
@@ -108,9 +108,25 @@
         "lastSeen": {
           ".validate": "newData.isNumber()"
         },
+        "wins": {
+          ".validate": "newData.isNumber() && newData.val() >= 0"
+        },
+        "losses": {
+          ".validate": "newData.isNumber() && newData.val() >= 0"
+        },
+        "draws": {
+          ".validate": "newData.isNumber() && newData.val() >= 0"
+        },
         "$other": {
           ".validate": false
         }
+      }
+    },
+    "countedGames": {
+      ".read": true,
+      "$gameId": {
+        ".write": true,
+        ".validate": "newData.val() === true"
       }
     }
   }

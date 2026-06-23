@@ -23,7 +23,10 @@
 </head>
 <body>
 
-<button id="themeToggle" class="theme-toggle" type="button" aria-label="Hell/Dunkel umschalten">🌙</button>
+<div class="corner-tools">
+    <button id="soundToggle" class="corner-btn" type="button" aria-label="Sound an/aus">🔊</button>
+    <button id="themeToggle" class="corner-btn" type="button" aria-label="Hell/Dunkel umschalten">🌙</button>
+</div>
 
 <div class="bg-decor" aria-hidden="true">
     <span class="blob blob-1"></span>
@@ -49,10 +52,11 @@
             <div class="player-meta">
                 <p class="player-symbol">Dino (X)</p>
                 <p class="player-name" id="nameX">frei</p>
-            </div>
-            <div class="player-score">
-                <span class="score-value" id="scoreX">0</span>
-                <span class="score-label">Siege</span>
+                <div class="player-stats">
+                    <span title="Siege">✅ <b id="winsX">0</b></span>
+                    <span title="Niederlagen">❌ <b id="lossesX">0</b></span>
+                    <span title="Unentschieden">🤝 <b id="drawsX">0</b></span>
+                </div>
             </div>
             <span class="you-badge" id="youBadgeX">Du</span>
             <span class="turn-flag" id="turnFlagX">am Zug</span>
@@ -60,10 +64,6 @@
 
         <div class="score-center">
             <div class="vs-circle">VS</div>
-            <div class="draws-pill">
-                <span class="draws-value" id="scoreDraws">0</span>
-                <span class="draws-label">Unentschieden</span>
-            </div>
         </div>
 
         <article class="player-card player-o" id="cardO">
@@ -73,10 +73,11 @@
             <div class="player-meta">
                 <p class="player-symbol">Ente (O)</p>
                 <p class="player-name" id="nameO">frei</p>
-            </div>
-            <div class="player-score">
-                <span class="score-value" id="scoreO">0</span>
-                <span class="score-label">Siege</span>
+                <div class="player-stats">
+                    <span title="Siege">✅ <b id="winsO">0</b></span>
+                    <span title="Niederlagen">❌ <b id="lossesO">0</b></span>
+                    <span title="Unentschieden">🤝 <b id="drawsO">0</b></span>
+                </div>
             </div>
             <span class="you-badge" id="youBadgeO">Du</span>
             <span class="turn-flag" id="turnFlagO">am Zug</span>

@@ -31,7 +31,6 @@ const db = getDatabase(app);
 const gameRef = ref(db, "game");
 const rematchRef = ref(db, "rematch");
 const playersRef = ref(db, "players");
-const statsRef = ref(db, "stats");
 const devicesRef = ref(db, "devices");
 
 
@@ -92,9 +91,12 @@ const cardX = document.getElementById("cardX");
 const cardO = document.getElementById("cardO");
 const nameXEl = document.getElementById("nameX");
 const nameOEl = document.getElementById("nameO");
-const scoreXEl = document.getElementById("scoreX");
-const scoreOEl = document.getElementById("scoreO");
-const scoreDrawsEl = document.getElementById("scoreDraws");
+const winsXEl = document.getElementById("winsX");
+const lossesXEl = document.getElementById("lossesX");
+const drawsXEl = document.getElementById("drawsX");
+const winsOEl = document.getElementById("winsO");
+const lossesOEl = document.getElementById("lossesO");
+const drawsOEl = document.getElementById("drawsO");
 
 const nameScreen = document.getElementById("nameScreen");
 const nameForm = document.getElementById("nameForm");
@@ -114,6 +116,7 @@ const readyBtn = document.getElementById("readyBtn");
 const endgameNote = document.getElementById("endgameNote");
 
 const themeToggle = document.getElementById("themeToggle");
+const soundToggle = document.getElementById("soundToggle");
 const surrenderBtn = document.getElementById("surrenderBtn");
 
 const cellButtons = [];
@@ -137,7 +140,6 @@ let moveNumber = 0;
 let forfeitedBy = EMPTY;
 
 let rematchState = null;
-let statsState = { x: 0, o: 0, draws: 0, lastCountedGameId: EMPTY };
 let playersMap = {};
 let devicesMap = {};
 
@@ -146,6 +148,8 @@ let repairInProgress = false;
 let lastSeenStatus = null;
 let wasMyTurn = false;
 let lastMoveTimeout = null;
+let audioCtx = null;
+let soundEnabled = true;
 
 
 // ==========================
@@ -572,9 +576,12 @@ function renderPlayers() {
     nameXEl.textContent = xId ? (deviceName(xId) || "Spieler") : "wartet...";
     nameOEl.textContent = oId ? (deviceName(oId) || "Spieler") : "wartet...";
 
-    scoreXEl.textContent = String(statsState.x);
-    scoreOEl.textContent = String(statsState.o);
-    scoreDrawsEl.textContent = String(statsState.draws);
+    winsXEl.textContent = String(deviceStat(xId, "wins"));
+    lossesXEl.textContent = String(deviceStat(xId, "losses"));
+    drawsXEl.textContent = String(deviceStat(xId, "draws"));
+    winsOEl.textContent = String(deviceStat(oId, "wins"));
+    lossesOEl.textContent = String(deviceStat(oId, "losses"));
+    drawsOEl.textContent = String(deviceStat(oId, "draws"));
 
     cardX.classList.toggle("is-you", mySymbol === PLAYER_X);
     cardO.classList.toggle("is-you", mySymbol === PLAYER_O);
@@ -740,6 +747,62 @@ function vibrate(pattern) {
     }
 }
 
+function ensureAudio() {
+    try {
+        if (!audioCtx) {
+            const Ctx = window.AudioContext || window.webkitAudioContext;
+            if (Ctx) audioCtx = new Ctx();
+        }
+        if (audioCtx && audioCtx.state === "suspended") {
+            audioCtx.resume();
+        }
+    } catch (error) {
+        // Audio nicht verfuegbar - ignorieren.
+    }
+}
+
+function playTone(freq, startOffset, duration, type, peak) {
+    if (!audioCtx) return;
+
+    const oscillator = audioCtx.createOscillator();
+    const gainNode = audioCtx.createGain();
+    const startTime = audioCtx.currentTime + startOffset;
+
+    oscillator.type = type || "sine";
+    oscillator.frequency.value = freq;
+
+    gainNode.gain.setValueAtTime(0.0001, startTime);
+    gainNode.gain.exponentialRampToValueAtTime(peak || 0.16, startTime + 0.02);
+    gainNode.gain.exponentialRampToValueAtTime(0.0001, startTime + duration);
+
+    oscillator.connect(gainNode).connect(audioCtx.destination);
+    oscillator.start(startTime);
+    oscillator.stop(startTime + duration + 0.03);
+}
+
+function playSound(name) {
+    if (!soundEnabled) return;
+    ensureAudio();
+    if (!audioCtx) return;
+
+    if (name === "move") {
+        playTone(330, 0, 0.12, "triangle", 0.16);
+    } else if (name === "opponent") {
+        playTone(247, 0, 0.12, "triangle", 0.14);
+    } else if (name === "win") {
+        playTone(523, 0, 0.16, "sine", 0.2);
+        playTone(659, 0.14, 0.16, "sine", 0.2);
+        playTone(784, 0.28, 0.3, "sine", 0.2);
+    } else if (name === "lose") {
+        playTone(392, 0, 0.18, "sine", 0.18);
+        playTone(311, 0.16, 0.2, "sine", 0.18);
+        playTone(233, 0.34, 0.34, "sine", 0.18);
+    } else if (name === "draw") {
+        playTone(440, 0, 0.16, "sine", 0.15);
+        playTone(440, 0.2, 0.24, "sine", 0.15);
+    }
+}
+
 function getWinningLine(cells) {
     for (const pattern of WIN_PATTERNS) {
         const [a, b, c] = pattern;
@@ -751,29 +814,19 @@ function getWinningLine(cells) {
 }
 
 function updateWinHighlights() {
-    cellButtons.forEach(button => button.classList.remove("win-cell"));
-    miniBoards.forEach(miniBoard => miniBoard.classList.remove("win-board"));
-
-    for (let boardIndex = 0; boardIndex < BOARD_COUNT; boardIndex += 1) {
-        if (boardWinners[boardIndex] === PLAYER_X || boardWinners[boardIndex] === PLAYER_O) {
-            const line = getWinningLine(boards[boardIndex]);
-            if (line) {
-                line.forEach(cellIndex => {
-                    const button = cellButtons[boardIndex * CELL_COUNT + cellIndex];
-                    if (button) button.classList.add("win-cell");
-                });
-            }
-        }
-    }
+    const winBoardIndices = new Set();
 
     if (gameWinner === PLAYER_X || gameWinner === PLAYER_O) {
         const bigLine = getWinningLine(boardWinners.map(result => isPlayer(result) ? result : EMPTY));
         if (bigLine) {
-            bigLine.forEach(boardIndex => {
-                if (miniBoards[boardIndex]) miniBoards[boardIndex].classList.add("win-board");
-            });
+            bigLine.forEach(boardIndex => winBoardIndices.add(boardIndex));
         }
     }
+
+    // toggle (statt remove + add) haelt die Animationen synchron und startet sie nicht neu.
+    miniBoards.forEach((miniBoard, index) => {
+        miniBoard.classList.toggle("win-board", winBoardIndices.has(index));
+    });
 }
 
 function updateTurnFeedback() {
@@ -995,55 +1048,51 @@ async function registerPlayer() {
 
 
 // ==========================
-// STATS
+// STATS (pro Geraet in devices)
 // ==========================
 
-function normalizeStats(raw) {
-    if (!isRecord(raw)) {
-        return { x: 0, o: 0, draws: 0, lastCountedGameId: EMPTY };
-    }
-
-    return {
-        x: Number.isInteger(raw.x) && raw.x >= 0 ? raw.x : 0,
-        o: Number.isInteger(raw.o) && raw.o >= 0 ? raw.o : 0,
-        draws: Number.isInteger(raw.draws) && raw.draws >= 0 ? raw.draws : 0,
-        lastCountedGameId: typeof raw.lastCountedGameId === "string" ? raw.lastCountedGameId : EMPTY
-    };
+function deviceStat(deviceId, field) {
+    const entry = deviceId ? devicesMap[deviceId] : null;
+    return entry && Number.isInteger(entry[field]) ? entry[field] : 0;
 }
 
-function attachStatsListener() {
-    onValue(statsRef, snap => {
-        statsState = normalizeStats(snap.val());
-        renderPlayers();
-    });
+async function bumpDeviceStat(deviceId, field) {
+    if (!deviceId) return;
+
+    await runTransaction(ref(db, `devices/${deviceId}/${field}`), current =>
+        (Number.isInteger(current) ? current : 0) + 1
+    );
 }
 
 async function countGameResultIfNeeded() {
     if (gameStatus !== "ended" || !gameId) return;
-    if (gameWinner !== PLAYER_X && gameWinner !== PLAYER_O && gameWinner !== DRAW) return;
+    if (!isPlayer(gameWinner) && gameWinner !== DRAW) return;
+
+    const xId = playersMap.X;
+    const oId = playersMap.O;
+    if (!xId || !oId) return;
 
     const endedGameId = gameId;
     const result = gameWinner;
 
     try {
-        await runTransaction(statsRef, current => {
-            const stats = normalizeStats(current);
-
-            if (stats.lastCountedGameId === endedGameId) {
-                return stats;
-            }
-
-            if (result === PLAYER_X) {
-                stats.x += 1;
-            } else if (result === PLAYER_O) {
-                stats.o += 1;
-            } else {
-                stats.draws += 1;
-            }
-
-            stats.lastCountedGameId = endedGameId;
-            return stats;
+        // Idempotenz: nur der erste Client, der den Game beansprucht, zaehlt ihn.
+        const claim = await runTransaction(ref(db, `countedGames/${endedGameId}`), current => {
+            if (current) return;
+            return true;
         });
+
+        if (!claim.committed) return;
+
+        if (result === DRAW) {
+            await bumpDeviceStat(xId, "draws");
+            await bumpDeviceStat(oId, "draws");
+        } else {
+            const winnerId = result === PLAYER_X ? xId : oId;
+            const loserId = result === PLAYER_X ? oId : xId;
+            await bumpDeviceStat(winnerId, "wins");
+            await bumpDeviceStat(loserId, "losses");
+        }
     } catch (error) {
         console.error("Statistik konnte nicht aktualisiert werden:", error);
     }
@@ -1103,10 +1152,26 @@ function attachGameListener() {
 
         if (lastMove) {
             highlightLastMove(lastMove.board, lastMove.cell);
+
+            // Sound nur fuer den gegnerischen Zug (der eigene klingt schon beim Klick).
+            const mover = normalized.boards[lastMove.board][lastMove.cell];
+            if (gameStatus === "playing" && mover !== mySymbol) {
+                playSound("opponent");
+            }
         }
 
         if (gameStatus === "ended" && lastSeenStatus !== "ended") {
             launchConfetti();
+
+            if (gameWinner === DRAW) {
+                playSound("draw");
+            } else if (isPlayer(mySymbol) && gameWinner === mySymbol) {
+                playSound("win");
+            } else if (isPlayer(mySymbol)) {
+                playSound("lose");
+            } else {
+                playSound("win");
+            }
         }
         lastSeenStatus = gameStatus;
 
@@ -1116,7 +1181,6 @@ function attachGameListener() {
 
         if (gameStatus === "ended") {
             await countGameResultIfNeeded();
-            await ensureRematchInitializedForCurrentGame();
         }
     });
 }
@@ -1136,6 +1200,7 @@ async function handleCellClick(event) {
     }
 
     vibrate(40);
+    playSound("move");
     statusText.textContent = "Zug wird synchronisiert...";
 
     try {
@@ -1183,20 +1248,6 @@ function normalizeRematchData(rawRematch) {
         readyO: rawRematch.readyO === true,
         claimedBy: typeof rawRematch.claimedBy === "string" ? rawRematch.claimedBy : EMPTY
     };
-}
-
-async function ensureRematchInitializedForCurrentGame() {
-    if (gameStatus !== "ended" || !gameId) return;
-
-    await runTransaction(rematchRef, currentRematch => {
-        const normalized = normalizeRematchData(currentRematch);
-
-        if (normalized && normalized.gameId === gameId) {
-            return normalized;
-        }
-
-        return createRematchState(gameId);
-    });
 }
 
 readyBtn.addEventListener("click", async () => {
@@ -1295,19 +1346,11 @@ async function attemptRestartIfReady() {
 function attachRematchListener() {
     onValue(rematchRef, async snap => {
         rematchState = normalizeRematchData(snap.val());
-
-        if (gameStatus !== "ended") {
-            updateEndgameUI();
-            return;
-        }
-
-        if (!rematchState || rematchState.gameId !== gameId) {
-            await ensureRematchInitializedForCurrentGame();
-            return;
-        }
-
         updateEndgameUI();
-        await attemptRestartIfReady();
+
+        if (gameStatus === "ended") {
+            await attemptRestartIfReady();
+        }
     });
 }
 
@@ -1378,6 +1421,37 @@ themeToggle.addEventListener("click", () => {
 
 
 // ==========================
+// SOUND
+// ==========================
+
+try {
+    soundEnabled = localStorage.getItem("sound") !== "off";
+} catch (error) {
+    soundEnabled = true;
+}
+
+function updateSoundToggle() {
+    soundToggle.textContent = soundEnabled ? "🔊" : "🔇";
+}
+
+soundToggle.addEventListener("click", () => {
+    soundEnabled = !soundEnabled;
+    try {
+        localStorage.setItem("sound", soundEnabled ? "on" : "off");
+    } catch (error) {
+        // localStorage nicht verfuegbar - ignorieren.
+    }
+    updateSoundToggle();
+    if (soundEnabled) {
+        ensureAudio();
+        playSound("move");
+    }
+});
+
+updateSoundToggle();
+
+
+// ==========================
 // START
 // ==========================
 
@@ -1387,7 +1461,6 @@ async function start() {
 
     attachConnectionListener();
     attachDevicesListener();
-    attachStatsListener();
     setupConnection();
 
     await ensureNameRegistered();
